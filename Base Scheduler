@@ -1,0 +1,94 @@
+import tkinter as tk
+from tkinter import messagebox
+
+
+class ClassScheduleApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("FIT Scheduler")
+
+        self.classes = {day: {hour: tk.StringVar() for hour in range(8, 21)} for day in
+                        ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]}
+        self.var_selected_days = {day: tk.BooleanVar(value=False) for day in self.classes.keys()}
+
+        # Create labels, entry, and buttons
+        self.label_class_name = tk.Label(root, text="Class Name:")
+        self.entry_class_name = tk.Entry(root)
+        self.label_class_time = tk.Label(root, text="Class Time:")
+        self.entry_class_time = tk.Entry(root)
+        self.label_days = tk.Label(root, text="Select Days:")
+
+        # Checkbuttons for days
+        self.check_buttons = {day: tk.Checkbutton(root, text=day, variable=self.var_selected_days[day]) for day in
+                              self.classes.keys()}
+
+        self.button_add_class = tk.Button(root, text="Add Class", command=self.add_class)
+
+        # Schedule display
+        self.schedule_frame = tk.Frame(root, borderwidth=2, relief="solid")
+        self.create_schedule_labels()
+
+        # Title label
+        self.label_title = tk.Label(root, text="FIT Scheduler", font=("Helvetica", 16, "bold"))
+
+        # Grid layout
+        self.label_title.grid(row=0, column=0, columnspan=4, pady=(10, 0), padx=10, sticky="w")
+
+        self.label_class_name.grid(row=1, column=4, pady=(10, 0), padx=10, sticky="w")
+        self.entry_class_name.grid(row=1, column=5, pady=(10, 0), padx=10, sticky="w")
+        self.label_class_time.grid(row=2, column=4, pady=(10, 0), padx=10, sticky="w")
+        self.entry_class_time.grid(row=2, column=5, pady=(10, 0), padx=10, sticky="w")
+        self.label_days.grid(row=3, column=4, pady=(10, 0), padx=10, sticky="w")
+
+        # Checkbuttons layout
+        for i, (day, check_button) in enumerate(self.check_buttons.items()):
+            check_button.grid(row=i + 4, column=4, pady=(5, 0), padx=10, sticky="w")
+
+        self.button_add_class.grid(row=11, column=4, columnspan=2, pady=10)
+
+        # Schedule frame layout
+        self.schedule_frame.grid(row=1, column=0, rowspan=14, columnspan=4, padx=10, pady=10, sticky="nsew")
+
+    def create_schedule_labels(self):
+        # Create labels for each day of the week and hour
+        for i, day in enumerate(self.classes.keys()):
+            tk.Label(self.schedule_frame, text=day, font=("Helvetica", 10, "bold")).grid(row=0, column=i + 1, padx=10)
+
+        for i, hour in enumerate(range(8, 21)):
+            tk.Label(self.schedule_frame, text=f"{hour}:00", font=("Helvetica", 10, "bold")).grid(row=i + 1, column=0,
+                                                                                                  pady=10)
+
+            for j, day in enumerate(self.classes.keys()):
+                label = tk.Label(self.schedule_frame, textvariable=self.classes[day][hour], borderwidth=1,
+                                 relief="solid", width=15, height=2)
+                label.grid(row=i + 1, column=j + 1, padx=10, pady=5)
+
+    def add_class(self):
+        class_name = self.entry_class_name.get()
+        class_time = self.entry_class_time.get()
+
+        selected_days = [day for day, var in self.var_selected_days.items() if var.get()]
+
+        if class_name and class_time and selected_days:
+            try:
+                hour = int(class_time.split(":")[0])
+                class_info = f"{class_name} - {class_time}"
+
+                for selected_day in selected_days:
+                    self.classes[selected_day][hour].set(class_info)
+
+                # Clear entry fields and selected days
+                self.entry_class_name.delete(0, tk.END)
+                self.entry_class_time.delete(0, tk.END)
+                for var in self.var_selected_days.values():
+                    var.set(False)
+            except ValueError:
+                messagebox.showwarning("Input Error", "Invalid class time format. Please use HH:MM.")
+        else:
+            messagebox.showwarning("Input Error", "Please enter class name, class time, and select at least one day.")
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = ClassScheduleApp(root)
+    root.mainloop()
